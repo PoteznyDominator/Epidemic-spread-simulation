@@ -106,23 +106,22 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 var canvas = document.querySelector('canvas');
 var c = canvas.getContext('2d');
-canvas.width = innerWidth;
-canvas.height = innerHeight;
-var mouse = {
-  x: innerWidth / 2,
-  y: innerHeight / 2
-};
-var colors = ['#2185C5', '#7ECEFD', '#FFF6E5', '#FF7F66']; // Event Listeners
-
-addEventListener('mousemove', function (event) {
-  mouse.x = event.clientX;
-  mouse.y = event.clientY;
-});
-addEventListener('resize', function () {
-  canvas.width = innerWidth;
-  canvas.height = innerHeight;
-  init();
-}); // Objects
+canvas.width = innerHeight / 2;
+canvas.height = innerHeight / 2; // addEventListener('resize', () => {
+//   canvas.width = innerWidth / 2;
+//   canvas.height = innerHeight / 2;
+//   init();
+// });
+// const mouse = {
+//   x: innerWidth / 2,
+//   y: innerHeight / 2
+// }
+// Event Listeners
+// addEventListener('mousemove', (event) => {
+//   mouse.x = event.clientX
+//   mouse.y = event.clientY
+// })
+// Objects
 
 var _Object = /*#__PURE__*/function () {
   function Object(x, y, radius, color) {
@@ -130,6 +129,10 @@ var _Object = /*#__PURE__*/function () {
 
     this.x = x;
     this.y = y;
+    this.velocity = {
+      x: Math.random() * 5 - 2.5,
+      y: Math.random() * 5 - 2.5
+    };
     this.radius = radius;
     this.color = color;
   }
@@ -147,6 +150,27 @@ var _Object = /*#__PURE__*/function () {
     key: "update",
     value: function update() {
       this.draw();
+      this.x += this.velocity.x;
+      this.y += this.velocity.y;
+
+      for (var i = 0; i < objects.length; i++) {
+        if (this === objects[i]) continue;
+
+        if (_utils__WEBPACK_IMPORTED_MODULE_0___default.a.getDistance(this.x, this.y, objects[i].x, objects[i].y) - 2 * this.radius < 0) {
+          // console.log("hit")
+          // consider adding bounce effect
+          this.color = "red";
+        }
+      } // detect canvas hit
+
+
+      if (this.x - this.radius <= 0 || this.x + this.radius >= canvas.width) {
+        this.velocity.x = -this.velocity.x;
+      }
+
+      if (this.y - this.radius <= 0 || this.y + this.radius >= canvas.height) {
+        this.velocity.y = -this.velocity.y;
+      }
     }
   }]);
 
@@ -159,21 +183,44 @@ var objects;
 function init() {
   objects = [];
 
-  for (var i = 0; i < 400; i++) {// objects.push()
+  for (var i = 0; i < 30; i++) {
+    var radius = 10; // values of x and y are specify like this to ensure non of them spawn in canvas border
+
+    var x = _utils__WEBPACK_IMPORTED_MODULE_0___default.a.randomIntFromRange(radius, canvas.width - radius);
+    var y = _utils__WEBPACK_IMPORTED_MODULE_0___default.a.randomIntFromRange(radius, canvas.height - radius);
+
+    if (i != 0) {
+      for (var j = 0; j < objects.length; j++) {
+        // to avoid spawning object inside one of other objects
+        if (_utils__WEBPACK_IMPORTED_MODULE_0___default.a.getDistance(x, y, objects[j].x, objects[j].y) - radius * 2 < 0) {
+          x = _utils__WEBPACK_IMPORTED_MODULE_0___default.a.randomIntFromRange(radius, canvas.width - radius);
+          y = _utils__WEBPACK_IMPORTED_MODULE_0___default.a.randomIntFromRange(radius, canvas.height - radius);
+          j = -1;
+        }
+      }
+    }
+
+    objects.push(new _Object(x, y, radius, "blue"));
   }
 } // Animation Loop
 
 
 function animate() {
   requestAnimationFrame(animate);
-  c.clearRect(0, 0, canvas.width, canvas.height);
-  c.fillText('HTML  BOILERPLATE', mouse.x, mouse.y); // objects.forEach(object => {
-  //  object.update()
-  // })
+  c.clearRect(0, 0, canvas.width, canvas.height); // c.fillText('HTML  BOILERPLATE', mouse.x, mouse.y)
+
+  objects.forEach(function (object) {
+    object.update();
+  });
 }
 
 init();
-animate();
+animate(); // window.setInterval(() => {
+//   objects.forEach((object) => {
+//     object.velocity.x = Math.random() * 5 - 2.5;
+//     object.velocity.y = Math.random() * 5 - 2.5;
+//   });
+// }, 3000);
 
 /***/ }),
 
@@ -188,11 +235,7 @@ function randomIntFromRange(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-function randomColor(colors) {
-  return colors[Math.floor(Math.random() * colors.length)];
-}
-
-function distance(x1, y1, x2, y2) {
+function getDistance(x1, y1, x2, y2) {
   var xDist = x2 - x1;
   var yDist = y2 - y1;
   return Math.sqrt(Math.pow(xDist, 2) + Math.pow(yDist, 2));
@@ -200,8 +243,7 @@ function distance(x1, y1, x2, y2) {
 
 module.exports = {
   randomIntFromRange: randomIntFromRange,
-  randomColor: randomColor,
-  distance: distance
+  getDistance: getDistance
 };
 
 /***/ })
