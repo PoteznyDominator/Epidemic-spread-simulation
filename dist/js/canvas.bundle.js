@@ -97,6 +97,72 @@
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/js/utils.js");
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_utils__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _circle__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./circle */ "./src/js/circle.js");
+
+
+
+
+var canvas = document.querySelector('canvas');
+var c = canvas.getContext('2d');
+canvas.width = innerHeight / 2;
+canvas.height = innerHeight / 2; // stores object for canvas
+
+var circles;
+
+function init() {
+  circles = [];
+  var radius = 10; // values of x and y are specify like this to ensure non of them spawn in canvas border
+
+  var x = _utils__WEBPACK_IMPORTED_MODULE_0___default.a.randomIntFromRange(radius, canvas.width - radius);
+  var y = _utils__WEBPACK_IMPORTED_MODULE_0___default.a.randomIntFromRange(radius, canvas.height - radius);
+  circles.push(new _circle__WEBPACK_IMPORTED_MODULE_1__["default"](c, x, y, radius, "red"));
+
+  for (var i = 0; i < 30; i++) {
+    x = _utils__WEBPACK_IMPORTED_MODULE_0___default.a.randomIntFromRange(radius, canvas.width - radius);
+    y = _utils__WEBPACK_IMPORTED_MODULE_0___default.a.randomIntFromRange(radius, canvas.height - radius);
+
+    if (i != 0) {
+      for (var j = 0; j < circles.length; j++) {
+        // to avoid spawning object inside one of other circles
+        if (_utils__WEBPACK_IMPORTED_MODULE_0___default.a.getDistance(x, y, circles[j].x, circles[j].y) - radius * 2 < 0) {
+          x = _utils__WEBPACK_IMPORTED_MODULE_0___default.a.randomIntFromRange(radius, canvas.width - radius);
+          y = _utils__WEBPACK_IMPORTED_MODULE_0___default.a.randomIntFromRange(radius, canvas.height - radius);
+          j = -1;
+        }
+      }
+    }
+
+    circles.push(new _circle__WEBPACK_IMPORTED_MODULE_1__["default"](c, x, y, radius, "blue"));
+  }
+} // Animation Loop
+
+
+function animate() {
+  requestAnimationFrame(animate);
+  c.clearRect(0, 0, canvas.width, canvas.height);
+  circles.forEach(function (object) {
+    object.update(circles);
+  });
+}
+
+init();
+animate();
+
+/***/ }),
+
+/***/ "./src/js/circle.js":
+/*!**************************!*\
+  !*** ./src/js/circle.js ***!
+  \**************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/js/utils.js");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_utils__WEBPACK_IMPORTED_MODULE_0__);
+
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
@@ -106,27 +172,12 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 var canvas = document.querySelector('canvas');
 var c = canvas.getContext('2d');
-canvas.width = innerHeight / 2;
-canvas.height = innerHeight / 2; // addEventListener('resize', () => {
-//   canvas.width = innerWidth / 2;
-//   canvas.height = innerHeight / 2;
-//   init();
-// });
-// const mouse = {
-//   x: innerWidth / 2,
-//   y: innerHeight / 2
-// }
-// Event Listeners
-// addEventListener('mousemove', (event) => {
-//   mouse.x = event.clientX
-//   mouse.y = event.clientY
-// })
-// Objects
 
-var _Object = /*#__PURE__*/function () {
-  function Object(x, y, radius, color) {
-    _classCallCheck(this, Object);
+var Circle = /*#__PURE__*/function () {
+  function Circle(context, x, y, radius, color) {
+    _classCallCheck(this, Circle);
 
+    this.context = context;
     this.x = x;
     this.y = y;
     this.velocity = {
@@ -137,26 +188,17 @@ var _Object = /*#__PURE__*/function () {
     this.color = color;
   }
 
-  _createClass(Object, [{
-    key: "draw",
-    value: function draw() {
-      c.beginPath();
-      c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-      c.fillStyle = this.color;
-      c.fill();
-      c.closePath();
-    }
-  }, {
+  _createClass(Circle, [{
     key: "update",
-    value: function update() {
+    value: function update(circles) {
       this.draw();
       this.x += this.velocity.x;
       this.y += this.velocity.y;
 
-      for (var i = 0; i < objects.length; i++) {
-        if (this === objects[i]) continue;
+      for (var i = 0; i < circles.length; i++) {
+        if (this === circles[i]) continue;
 
-        if (_utils__WEBPACK_IMPORTED_MODULE_0___default.a.getDistance(this.x, this.y, objects[i].x, objects[i].y) - 2 * this.radius < 0) {
+        if (_utils__WEBPACK_IMPORTED_MODULE_0___default.a.getDistance(this.x, this.y, circles[i].x, circles[i].y) - 2 * this.radius < 0 && circles[i].color == "red") {
           // console.log("hit")
           // consider adding bounce effect
           this.color = "red";
@@ -172,55 +214,21 @@ var _Object = /*#__PURE__*/function () {
         this.velocity.y = -this.velocity.y;
       }
     }
+  }, {
+    key: "draw",
+    value: function draw() {
+      c.beginPath();
+      c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+      c.fillStyle = this.color;
+      c.fill();
+      c.closePath();
+    }
   }]);
 
-  return Object;
-}(); // Implementation
+  return Circle;
+}();
 
-
-var objects;
-
-function init() {
-  objects = [];
-
-  for (var i = 0; i < 30; i++) {
-    var radius = 10; // values of x and y are specify like this to ensure non of them spawn in canvas border
-
-    var x = _utils__WEBPACK_IMPORTED_MODULE_0___default.a.randomIntFromRange(radius, canvas.width - radius);
-    var y = _utils__WEBPACK_IMPORTED_MODULE_0___default.a.randomIntFromRange(radius, canvas.height - radius);
-
-    if (i != 0) {
-      for (var j = 0; j < objects.length; j++) {
-        // to avoid spawning object inside one of other objects
-        if (_utils__WEBPACK_IMPORTED_MODULE_0___default.a.getDistance(x, y, objects[j].x, objects[j].y) - radius * 2 < 0) {
-          x = _utils__WEBPACK_IMPORTED_MODULE_0___default.a.randomIntFromRange(radius, canvas.width - radius);
-          y = _utils__WEBPACK_IMPORTED_MODULE_0___default.a.randomIntFromRange(radius, canvas.height - radius);
-          j = -1;
-        }
-      }
-    }
-
-    objects.push(new _Object(x, y, radius, "blue"));
-  }
-} // Animation Loop
-
-
-function animate() {
-  requestAnimationFrame(animate);
-  c.clearRect(0, 0, canvas.width, canvas.height); // c.fillText('HTML  BOILERPLATE', mouse.x, mouse.y)
-
-  objects.forEach(function (object) {
-    object.update();
-  });
-}
-
-init();
-animate(); // window.setInterval(() => {
-//   objects.forEach((object) => {
-//     object.velocity.x = Math.random() * 5 - 2.5;
-//     object.velocity.y = Math.random() * 5 - 2.5;
-//   });
-// }, 3000);
+/* harmony default export */ __webpack_exports__["default"] = (Circle);
 
 /***/ }),
 
